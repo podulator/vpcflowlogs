@@ -11,10 +11,13 @@ function TrafficNode(ip_address, port, protocol, resolved) {
     this.dns = "";
     this.subnet = "";
     this.vpc = "";
-    this.expires = new Date(new Date().getTime() + 60 * 60000);
+    this.updateExpires();
     this.resolved = resolved;
 }
 
+TrafficNode.prototype.updateExpires = function() {
+    this.expires = new Date(new Date().getTime() + 5 * 60000);
+}
 TrafficNode.prototype.resolve = function () {
     if (this.type == "EXTERNAL") {
         return;

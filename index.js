@@ -7,6 +7,7 @@ var PacketManager = require("./PacketManager.js");
 
 const SUBNET_PREFIX = "10.";
 const PACKET_LIFETIME = 30;
+const CLEANING_FREQUENCY = 30;
 
 var linkAdded = function(trafficLink) {
     // called when a new link has been established for the graph
@@ -43,18 +44,14 @@ var nodeRemoved = function(node) {
     // called when a traffic node has expired
     // and needs to be removed from presentation
     console.log("traffic node removed :: " + node);
-    // remove from collection
-    trafficNodes = trafficNodes.filter(item => item !== node);
     // remove from any links
     trafficLinks.removeNodeLinks(node);
 }
 
 var kinesisSource = kinesis.stream({ name: 'vpc-flow-logs', oldest: true })
-//var trafficNodes = [];
-var trafficNodes = new TrafficNodes(nodeAdded, nodeRemoved);
-
+var trafficNodes = new TrafficNodes(CLEANING_FREQUENCY, nodeAdded, nodeRemoved);
 var trafficLinks = new TrafficLinks(linkAdded, linkRemoved, linkUpdated);
-var packetManager = new PacketManager(30, packetDeleted);
+var packetManager = new PacketManager(CLEANING_FREQUENCY, packetDeleted);
 
 kinesisSource.on('error', (err) => {
     console.log("eating an error :: " + err.message.substring(0, 200));
@@ -84,24 +81,10 @@ function parseData(chunk) {
         if (packet) {
             var sourceNode = new TrafficNode(packet.source_ip, packet.port, packet.protocol, nodeResolved);
             var destinationNode = new TrafficNode(packet.destination_ip, packet.port, packet.protocol, nodeResolved);
-            /*
-            if (!trafficNodes[packet.source_ip]) {
-                console.log("adding traffic node :: " + packet.source_ip);
-                sourceNode.resolve();
-                trafficNodes[packet.source_ip] = sourceNode;
-            }
-            if (!trafficNodes[packet.destination_ip]) {
-                console.log("adding traffic node :: " + packet.destination_ip);
-                destinationNode.resolve();
-                trafficNodes[packet.destination_ip] = destinationNode;
-            }
-            var link = new TrafficLink(trafficNodes[packet.source_ip], trafficNodes[packet.destination_ip]);
-            */
-            
+
             trafficNodes.add(sourceNode.ip_address, sourceNode);
             trafficNodes.add(destinationNode.ip_address, destinationNode);
             var link = new TrafficLink(sourceNode, destinationNode);
-
 
             trafficLinks.add(packet.key, link);
             packetManager.add(packet);

@@ -46,7 +46,6 @@ TrafficLinks.prototype.remove = function(key, force = false) {
     }
     //console.log("number of links post remove (" + key + ") :: " + this.objects.length + ", " + this.keys.length);
     //console.log("remove :: " + link.toString());
-    return link;
 };
 
 // export the class

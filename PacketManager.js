@@ -9,7 +9,7 @@ PacketManager.prototype.add = function(packet) {
     //console.log("Added packet, number in play :: " + this.packets.length);
 }
 PacketManager.prototype.clean = function(callback) {
-    console.log("Cleaning " + this.packets.length + " possible packets");
+    console.log("packet cleaning " + this.packets.length + " possible packets");
     var expires = new Date().getTime();
     var temp = [];
     this.packets.forEach(function(item){
@@ -21,7 +21,7 @@ PacketManager.prototype.clean = function(callback) {
     });
     this.packets = temp;
     //this.packets = this.packets.filter(item => item.expires > expires);
-    console.log("Cleaning finished, " + this.packets.length + " packets left");
+    console.log("packet cleaning finished, " + this.packets.length + " packets left");
 };
 // export the class
 module.exports = PacketManager;
