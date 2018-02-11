@@ -3,6 +3,7 @@ var TrafficNode = require("./TrafficNode.js");
 var TrafficNodes = require("./TrafficNodes.js");
 var TrafficLink = require("./TrafficLink.js");
 var TrafficLinks = require("./TrafficLinks.js");
+var Packet = require("./Packet.js");
 var PacketManager = require("./PacketManager.js");
 
 const SUBNET_PREFIX = "10.";
@@ -94,58 +95,6 @@ function parseData(chunk) {
 }
 
 var streamDataParser = function(input, callback) {
-    /*
-    Version INT,
-    Account STRING,
-    InterfaceId STRING,
-    SourceAddress STRING,
-    DestinationAddress STRING,
-    SourcePort INT,
-    DestinationPort INT,
-    Protocol INT,
-    Packets INT,
-    Bytes INT,
-    StartTime INT,
-    EndTime INT,
-    Action STRING,
-    LogStatus STRING
-    */
-    var parts = input.toString().split(" ");
-    var originPort = parseInt(parts[5]);
-    var destPort = parseInt(parts[6]);
-    var port = originPort < destPort ? originPort : destPort;
-    var protocol = parts[7];
-    var source_ip = parts[3];
-    var destination_ip = parts[4];
-    var expires = new Date(new Date().getTime() + PACKET_LIFETIME * 1000);
-    //console.log("packet expires :: " + expires);
-    if (!source_ip.startsWith(SUBNET_PREFIX)) {
-        source_ip = "EXTERNAL";
-    }
-    if (!destination_ip.startsWith(SUBNET_PREFIX)) {
-        destination_ip = "EXTERNAL";
-    }
-    switch(protocol) {
-        case "1":
-            protocol = "ICMP";
-            break;
-        case "4":
-            protocol = "IPv4";
-            break;
-        case "6":
-            protocol = "TCP";
-            break;
-        default:
-    };
-    var packet = {
-        "nic": parts[2], 
-        "source_ip": source_ip, 
-        "destination_ip": destination_ip, 
-        "port": port, 
-        "protocol": protocol, 
-        "expires": expires, 
-        "key": "k::" + source_ip + "::" + destination_ip
-    };
-
+    var packet = new Packet(SUBNET_PREFIX, PACKET_LIFETIME, input);
     callback(packet);
 }
