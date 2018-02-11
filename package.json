@@ -1,0 +1,13 @@
+{
+  "name": "FlowLogs",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "aws-sdk": "2.192.0", 
+    "kinesis": "1.2.2"
+  }
+}
