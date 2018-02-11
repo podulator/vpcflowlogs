@@ -37,7 +37,8 @@ TrafficLinks.prototype.remove = function(key, force = false) {
     }
     var link = obj.link;
     link.count--;
-    if (link.count <= 0 || force) {
+    if (force) link.count = 0;
+    if (link.count <= 0) {
         this.objects = this.objects.filter(item => item.link !== link);
         this.keys = this.keys.filter(item => item !== key);
         this.removed(link);

@@ -10,6 +10,8 @@ const SUBNET_PREFIX = "10.";
 const PACKET_LIFETIME = 30;
 const CLEANING_FREQUENCY = 30;
 
+/* GUI EVENTS START HERE */
+
 var linkAdded = function(trafficLink) {
     // called when a new link has been established for the graph
     // and needs to be added to the presentation layer
@@ -28,8 +30,7 @@ var linkRemoved = function(trafficLink) {
 var packetDeleted = function(packet) {
     // called when a packet has expired after PACKET_LIFETIME seconds
     //console.log("Deleted packet :: " + JSON.stringify(packet));
-    var link = trafficLinks.remove(packet.key);
-    //console.log("link count :: " + link.count);
+    trafficLinks.remove(packet.key);
 }
 var nodeAdded = function(node) {
     // called when a new traffic node has been discovered
@@ -48,6 +49,8 @@ var nodeRemoved = function(node) {
     // remove from any links
     trafficLinks.removeNodeLinks(node);
 }
+
+/* GUI EVENTS END HERE */
 
 var kinesisSource = kinesis.stream({ name: 'vpc-flow-logs', oldest: true })
 var trafficNodes = new TrafficNodes(CLEANING_FREQUENCY, nodeAdded, nodeRemoved);
