@@ -23,9 +23,10 @@ TrafficLinks.prototype.add = function(key, link) {
 
 TrafficLinks.prototype.removeNodeLinks = function(trafficNode) {
     var links = this.keys.filter(item => item.indexOf(trafficNode.ip_address) > 0);
+    var that = this;
     console.log("removing " + links.length + " links for node :: " + trafficNode.ip_address);
     links.forEach(function(key) {
-        this.remove(key);
+        that.remove(key);
     });
 }
 

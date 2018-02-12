@@ -52,7 +52,7 @@ var nodeRemoved = function(node) {
 
 /* GUI EVENTS END HERE */
 
-var kinesisSource = kinesis.stream({ name: 'vpc-flow-logs', oldest: true })
+var kinesisSource = kinesis.stream({ name: 'vpc-flow-logs', oldest: true, initialRetryMs: 250, region: "eu-west-1" })
 var trafficNodes = new TrafficNodes(CLEANING_FREQUENCY, nodeAdded, nodeRemoved);
 var trafficLinks = new TrafficLinks(linkAdded, linkRemoved, linkUpdated);
 var packetManager = new PacketManager(CLEANING_FREQUENCY, packetDeleted);
@@ -83,16 +83,20 @@ function parseData(chunk) {
     //console.log("received :: " + chunk.Data);
     streamDataParser(chunk.Data, function(packet) {
         if (packet) {
-            var sourceNode = new TrafficNode(packet.source_ip, packet.port, packet.protocol, nodeResolved);
-            var destinationNode = new TrafficNode(packet.destination_ip, packet.port, packet.protocol, nodeResolved);
+            try {
+                var sourceNode = new TrafficNode(packet.source_ip, packet.port, packet.protocol, nodeResolved);
+                var destinationNode = new TrafficNode(packet.destination_ip, packet.port, packet.protocol, nodeResolved);
 
-            trafficNodes.add(sourceNode.ip_address, sourceNode);
-            trafficNodes.add(destinationNode.ip_address, destinationNode);
-            var link = new TrafficLink(sourceNode, destinationNode);
+                trafficNodes.add(sourceNode.ip_address, sourceNode);
+                trafficNodes.add(destinationNode.ip_address, destinationNode);
+                var link = new TrafficLink(sourceNode, destinationNode);
 
-            trafficLinks.add(packet.key, link);
-            packetManager.add(packet);
-            //console.log(JSON.stringify(packet));
+                trafficLinks.add(packet.key, link);
+                packetManager.add(packet);
+                //console.log(JSON.stringify(packet));
+            } catch(err) {
+                console.log(err);
+            }
         }   
     });
 }
