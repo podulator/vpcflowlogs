@@ -1,14 +1,11 @@
-var kinesis = require('kinesis');
-var TrafficNode = require("./TrafficNode.js");
-var TrafficNodes = require("./TrafficNodes.js");
-var TrafficLink = require("./TrafficLink.js");
-var TrafficLinks = require("./TrafficLinks.js");
-var Packet = require("./Packet.js");
-var PacketManager = require("./PacketManager.js");
 
+var TrafficNodes = require("./TrafficNodes.js");
+var TrafficLinks = require("./TrafficLinks.js");
+var PacketManager = require("./PacketManager.js");
+var KinesisReader = require("./KinesisReader.js");
 const SUBNET_PREFIX = "10.";
-const PACKET_LIFETIME = 30;
 const CLEANING_FREQUENCY = 30;
+var kinesisParams = { name: 'vpc-flow-logs', oldest: true, initialRetryMs: 250, region: "eu-west-1" };
 
 /* GUI EVENTS START HERE */
 
@@ -52,56 +49,14 @@ var nodeRemoved = function(node) {
 
 /* GUI EVENTS END HERE */
 
-var kinesisSource = kinesis.stream({ name: 'vpc-flow-logs', oldest: true, initialRetryMs: 250, region: "eu-west-1" })
-var trafficNodes = new TrafficNodes(CLEANING_FREQUENCY, nodeAdded, nodeRemoved);
+var trafficNodes = new TrafficNodes(CLEANING_FREQUENCY, nodeAdded, nodeRemoved, nodeResolved);
 var trafficLinks = new TrafficLinks(linkAdded, linkRemoved, linkUpdated);
 var packetManager = new PacketManager(CLEANING_FREQUENCY, packetDeleted);
+var reader = new KinesisReader(SUBNET_PREFIX, kinesisParams, trafficNodes, trafficLinks, packetManager);
 
-kinesisSource.on('error', (err) => {
-    console.log("eating an error :: " + err.message.substring(0, 200));
-});
-kinesisSource.on('end', () => {
-    console.log('there will be no more data.');
-});
-kinesisSource.on('readable', () => {
-    console.log("stuff has arrived");
-});
-kinesisSource.on('data', (chunk) => {
-    parseData(chunk);
-});
-
-function parseData(chunk) {
-    /*
-    { 
-        ApproximateArrivalTimestamp: 1518283665.471,
-        Data: <... >,
-        PartitionKey: 'vpc-flow-logs',
-        SequenceNumber: '49581598545800625660742029190841367484113314148050272258',
-        ShardId: 'shardId-000000000000' 
-    }
-    */
-    //console.log("received :: " + chunk.Data);
-    streamDataParser(chunk.Data, function(packet) {
-        if (packet) {
-            try {
-                var sourceNode = new TrafficNode(packet.source_ip, packet.port, packet.protocol, nodeResolved);
-                var destinationNode = new TrafficNode(packet.destination_ip, packet.port, packet.protocol, nodeResolved);
-
-                trafficNodes.add(sourceNode.ip_address, sourceNode);
-                trafficNodes.add(destinationNode.ip_address, destinationNode);
-                var link = new TrafficLink(sourceNode, destinationNode);
-
-                trafficLinks.add(packet.key, link);
-                packetManager.add(packet);
-                //console.log(JSON.stringify(packet));
-            } catch(err) {
-                console.log(err);
-            }
-        }   
-    });
-}
-
-var streamDataParser = function(input, callback) {
-    var packet = new Packet(SUBNET_PREFIX, PACKET_LIFETIME, input);
-    callback(packet);
-}
+reader.on('error', function() {
+    console.log('kinesis stream reader error');
+    reader.destroy();
+    reader.run();
+  });
+reader.run();

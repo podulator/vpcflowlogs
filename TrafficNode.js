@@ -1,7 +1,7 @@
 var AWS = require('aws-sdk');
-var ec2 = new AWS.EC2({'region': 'eu-west-1'});
+var ec2 = new AWS.EC2({'region': 'eu-west-1', initialRetryMs: 500});
 
-function TrafficNode(ip_address, port, protocol, resolved) {
+function TrafficNode(ip_address, port, protocol) {
     this.ip_address = ip_address;
     this.port = port;
     this.protocol = protocol;
@@ -12,13 +12,12 @@ function TrafficNode(ip_address, port, protocol, resolved) {
     this.subnet = "";
     this.vpc = "";
     this.updateExpires();
-    this.resolved = resolved;
 }
 
 TrafficNode.prototype.updateExpires = function() {
     this.expires = new Date(new Date().getTime() + 5 * 60000);
 }
-TrafficNode.prototype.resolve = function () {
+TrafficNode.prototype.resolve = function (callback) {
     if (this.type == "EXTERNAL") {
         return;
     }
@@ -61,7 +60,7 @@ TrafficNode.prototype.resolve = function () {
                             that.name = tag.Value;
                         }
                     }
-                    that.resolved(that);
+                    callback(that);
                 }
             }
         }

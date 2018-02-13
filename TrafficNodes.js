@@ -1,9 +1,10 @@
-function TrafficNodes(interval, nodeAddedCB, nodeRemovedCB) {
+function TrafficNodes(interval, nodeAddedCB, nodeRemovedCB, nodeResolvedCB) {
     this.interval = interval * 1000;
     this.objects = [];
     this.keys = [];
     this.added = nodeAddedCB;
     this.removed = nodeRemovedCB;
+    this.resolved = nodeResolvedCB;
     setInterval(this.clean.bind(this), this.interval, this.removed);
 }
 
@@ -31,7 +32,7 @@ TrafficNodes.prototype.add = function(key, trafficNode) {
     if (!obj) {
         this.keys.push(key);
         this.objects.push({ 'key': key, 'node': trafficNode });
-        trafficNode.resolve();
+        trafficNode.resolve(this.resolved);
         this.added(trafficNode);
     } else {
         obj.node.updateExpires();

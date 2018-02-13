@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "aws-sdk": "2.192.0", 
-    "kinesis": "1.2.2"
+    "kinesis": "1.2.2", 
+    "events": "1.1.1"
   }
 }
