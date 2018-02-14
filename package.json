@@ -4,7 +4,8 @@
   "private": true,
   "main": "./index.js",
   "scripts": {
-    "start": "node ./index.js"
+    "start": "node ./index.js",
+    "server": "node ./src/server"
   },
   "dependencies": {
     "aws-sdk": "2.192.0",
@@ -12,6 +13,8 @@
     "express": "^4.16.2",
     "kinesis": "1.2.2",
     "serve-static": "^1.13.2",
+    "webpack": "^3.11.0",
+    "webpack-dev-middleware": "^2.0.5",
     "ws": "^4.0.0"
   }
 }
