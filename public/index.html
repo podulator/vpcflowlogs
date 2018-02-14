@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>vpcflowlogs</title>
+</head>
+<body>
+  <div class="output"></div>
+
+  <script>
+    const output = document.querySelector('.output');
+
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${protocol}://localhost:3000`);
+
+    ws.onmessage = handleMessage;
+
+    function handleMessage(event) {
+      const data = JSON.parse(event.data);
+
+      append(data.time);
+    }
+
+    function append(text) {
+      const div = document.createElement('div');
+      const content = document.createTextNode(text);
+
+      div.appendChild(content);
+      output.appendChild(div);
+    }
+  </script>
+</body>
+</html>
